@@ -1,1 +1,1 @@
-import { getDriver } from "./drivers/main";
+export * from "./easypay";
