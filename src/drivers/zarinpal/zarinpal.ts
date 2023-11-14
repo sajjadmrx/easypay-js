@@ -6,10 +6,9 @@ import {
   TransactionVerifyInputZp,
   TransactionVerifyResponseZp,
 } from "./interfaces/requests.interface";
-import { PaymentDriver } from "../main";
 import { zarinPalErrors } from "./enums/errors.enum";
 
-export class ZarinPalDriver implements PaymentDriver<TransactionCreateInputZp> {
+export class ZarinPalDriver {
   private merchant_id: string | null = null;
 
   setToken(merchant_id: string): this {

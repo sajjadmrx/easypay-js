@@ -1,11 +1,9 @@
 import { ZarinPalDriver } from "./zarinpal/zarinpal";
-
-export interface PaymentDriver<T> {
-  request(data: T): void;
-}
+import { IdPayDriver } from "./idpay/idpay";
 
 const drivers = {
   zarinpal: ZarinPalDriver,
+  idPay: IdPayDriver,
 };
 
 export type Drivers = keyof typeof drivers;
