@@ -9,20 +9,43 @@ import {
   TransactionVerifyResponseIdPay,
 } from "./interfaces/response.interface";
 
+/**
+ * Class that provides methods to interact with the IdPay API.
+ * 
+ * @class IdPayDriver
+ */
 export class IdPayDriver {
   private token: string | null = null;
   private sandBox: boolean = false;
 
+  /**
+   * Set the API token for authentication.
+   * 
+   * @param {string} token - The API token.
+   * @returns {this} Instance of IdPayDriver.
+ */
   setToken(token: string): this {
     this.token = token;
     return this;
   }
 
+  /**
+    * Set whether to use the sandbox environment or not.
+    * 
+    * @param {boolean} sandBox - True to use sandbox, false otherwise.
+    * @returns {this} Instance of IdPayDriver.
+  */
   setSandBox(sandBox: boolean): this {
     this.sandBox = sandBox;
     return this;
   }
 
+  /**
+   * Request method to create a transaction.
+   * 
+   * @param {TransactionCreateInputIdPay} dataInput - Input data for creating the transaction.
+   * @returns {Promise<TransactionCreateResponseIdPay>} Response from the IdPay API for creating a transaction.
+ */
   async request(
     dataInput: TransactionCreateInputIdPay,
   ): Promise<TransactionCreateResponseIdPay> {
@@ -51,6 +74,12 @@ export class IdPayDriver {
     }
   }
 
+  /**
+   * Verify method to verify a transaction.
+   * 
+   * @param {TransactionVerifyInputIdPay} dataInput - Input data for verifying the transaction.
+   * @returns {Promise<TransactionVerifyResponseIdPay>} Response from the IdPay API for verifying a transaction.
+ */
   async verify(
     dataInput: TransactionVerifyInputIdPay,
   ): Promise<TransactionVerifyResponseIdPay> {
@@ -76,6 +105,15 @@ export class IdPayDriver {
     }
   }
 
+  /**
+   * Generate headers for the HTTP requests.
+   * 
+   * @private
+   * @param {string | undefined} token - API token.
+   * @param {boolean} sandbox - Whether sandbox environment should be used.
+   * @returns {Record<string, string>} Headers for the HTTP request.
+   * @throws {Error} Throws an error if token is not provided.
+ */
   private getHeader(token: string | undefined, sandbox: boolean) {
     if (!token) throw new Error("token is required");
     return {

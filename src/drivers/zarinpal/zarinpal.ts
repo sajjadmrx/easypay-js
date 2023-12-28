@@ -8,15 +8,34 @@ import {
 } from "./interfaces/requests.interface";
 import { zarinPalErrors } from "./enums/errors.enum";
 
+
+/**
+   * Class to interact with the ZarinPal payment gateway.
+   * 
+   * @class ZarinPalDriver
+ */
 export class ZarinPalDriver {
   private merchant_id: string | null = null;
 
+  /**
+   * Set the merchant ID for the ZarinPal driver.
+   * 
+   * @param {string} merchant_id - The merchant ID to set.
+   * @returns {this} Instance of ZarinPalDriver.
+ */
   setToken(merchant_id: string): this {
     if (!merchant_id) throw new Error("invalid parameters");
     this.merchant_id = merchant_id;
     return this;
   }
 
+  /**
+   * Create a payment request to ZarinPal.
+   * 
+   * @param {TransactionCreateInputZp} data - Input data for creating the transaction.
+   * @param {boolean} [sandbox=false] - Flag to determine whether to use the sandbox environment.
+   * @returns {Promise<TransactionCreateResponseZp>} Response from the ZarinPal API for creating a transaction.
+ */
   async request(
     data: TransactionCreateInputZp,
     sandbox: boolean = false
@@ -69,6 +88,13 @@ export class ZarinPalDriver {
     }
   }
 
+  /**
+   * Verify a payment transaction with ZarinPal.
+   * 
+   * @param {TransactionVerifyInputZp} data - Input data for verifying the transaction.
+   * @param {boolean} [sandbox=false] - Flag to determine whether to use the sandbox environment.
+   * @returns {Promise<TransactionVerifyResponseZp>} Response from the ZarinPal API for verifying a transaction.
+ */
   async verify(
     data: TransactionVerifyInputZp,
     sandbox: boolean = false

@@ -1,49 +1,95 @@
+/**
+ * Represents the input structure for creating a transaction with IdPay.
+ * 
+ * @interface TransactionCreateInputIdPay
+ */
 export interface TransactionCreateInputIdPay {
-  token?: string;
   /**
-   * شماره سفارش پذیرنده
-   * به طول حداکثر 50 کاراکتر
+   * The token for authentication, if available.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
+   */
+  token?: string;
+
+  /**
+   * Merchant order ID.
+   * Maximum length: 50 characters.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
    */
   order_id: string;
-  /*
-    * مبلغ مورد نظر به ریال
-مبلغ باید بین 1,000 ریال تا 500,000,000 ریال باشد
-    * */
+
+  /**
+   * Desired amount in Rials.
+   * Amount must be between 1,000 Rials to 500,000,000 Rials.
+   * 
+   * @type {number}
+   * @memberof TransactionCreateInputIdPay
+   */
   amount: number;
-  /*
-    * نام پرداخت کننده
-به طول حداکثر 255 کاراکتر
-    * */
+
+  /**
+   * Name of the payer.
+   * Maximum length: 255 characters.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
+   */
   name?: string;
-  /*
-    * تلفن همراه پرداخت کننده
-به طول 11 کاراکتر
-مثل 9382198592 یا 09382198592 یا 989382198592
-    * */
+
+  /**
+   * Mobile number of the payer.
+   * Length should be 11 characters.
+   * Examples: 9382198592, 09382198592, 989382198592.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
+   */
   phone?: string;
 
-  /*
-    *
-    * پست الکترونیک پرداخت کننده
-به طول حداکثر 255 کاراکتر
-    *
-    * */
+  /**
+   * Email address of the payer.
+   * Maximum length: 255 characters.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
+   */
   mail?: string;
 
-  /*
-    * توضیح تراکنش
-به طول حداکثر 255 کاراکتر
-    * */
+  /**
+   * Transaction description.
+   * Maximum length: 255 characters.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
+   */
   desc: string;
 
-  /*
-    *آدرس بازگشت به سایت پذیرنده
-به طول حداکثر 2048 کاراکتر
-    *  */
+  /**
+   * Merchant's callback URL.
+   * Maximum length: 2048 characters.
+   * 
+   * @type {string}
+   * @memberof TransactionCreateInputIdPay
+   */
   callback: string;
 }
 
-export interface TransactionVerifyInputIdPay
-  extends Pick<TransactionCreateInputIdPay, "order_id" | "token"> {
+/**
+ * Represents the input structure for verifying a transaction with IdPay.
+ * Inherits properties 'order_id' and 'token' from TransactionCreateInputIdPay.
+ * 
+ * @interface TransactionVerifyInputIdPay
+ * @extends {Pick<TransactionCreateInputIdPay, "order_id" | "token">}
+ */
+export interface TransactionVerifyInputIdPay extends Pick<TransactionCreateInputIdPay, "order_id" | "token"> {
+  /**
+   * Transaction ID.
+   * 
+   * @type {string}
+   * @memberof TransactionVerifyInputIdPay
+   */
   id: string;
 }

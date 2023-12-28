@@ -1,4 +1,9 @@
 /**
+ * Object containing error codes and their corresponding descriptions for ZarinPal payment gateway.
+ * 
+ * This list is based on the official documentation provided by ZarinPal.
+ * 
+ * @constant
  * @link https://docs.zarinpal.com/paymentGateway/error.html
  */
 export const zarinPalErrors: Record<string, string> = {
