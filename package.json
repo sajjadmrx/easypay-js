@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "description": "a payment service library for handling different Iranian payment gateways",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist",
+    "/dist",
     "package.json",
     "README.md"
   ],

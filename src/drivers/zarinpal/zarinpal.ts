@@ -19,12 +19,15 @@ export class ZarinPalDriver {
 
   async request(
     data: TransactionCreateInputZp,
+    sandbox: boolean = false
   ): Promise<TransactionCreateResponseZp> {
     try {
       if (!data.amount || !data.description || !data.callback_url)
         throw new Error("invalid parameters");
 
-      const { data: dataAxios } = await axios.post(ZarinpalUrls.REQUEST, {
+      const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_REQUEST : ZarinpalUrls.REQUEST
+
+      const { data: dataAxios } = await axios.post(requestUrl, {
         ...data,
         merchant_id: data.merchant_id || this.merchant_id,
       });
@@ -41,7 +44,11 @@ export class ZarinPalDriver {
           isError: true,
         };
       }
-      dataAxios.data.url = `${ZarinpalUrls.REQUEST_PAGE}/${dataAxios.data.authority}`;
+
+      const url = sandbox ? ZarinpalUrls.SANDBOX_REQUEST_PAGE : ZarinpalUrls.REQUEST_PAGE
+
+      dataAxios.data.url = `${url}/${dataAxios.data.authority}`;
+
       return dataAxios;
     } catch (error: any) {
       if (error.isAxiosError) {
@@ -64,9 +71,12 @@ export class ZarinPalDriver {
 
   async verify(
     data: TransactionVerifyInputZp,
+    sandbox: boolean = false
   ): Promise<TransactionVerifyResponseZp> {
     try {
-      const { data: dataAxios } = await axios.post(ZarinpalUrls.VERIFY, {
+
+      const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_VERIFY : ZarinpalUrls.VERIFY
+      const { data: dataAxios } = await axios.post(requestUrl, {
         ...data,
         merchant_id: data.merchant_id || this.merchant_id,
       });
