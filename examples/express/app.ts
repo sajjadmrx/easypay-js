@@ -1,15 +1,18 @@
 import express, { Request, Response } from "express"
-import { getPaymentDriver, ZarinPalDriver } from "../../dist";
+import { getPaymentDriver, TransactionCreateInputIdPay, TransactionCreateInputZp, TransactionCreateResponseIdPay, TransactionCreateResponseZp, ZarinPalDriver } from "../../src"
+import { TransactionCreateResponseZibal } from "../../src/drivers/zibal/interfaces/response.interface"
+import { IdPayDriver } from '../../src/drivers/idpay/idpay';
 
 const app = express()
 
 
 app.listen(3000)
 
-const zarinPalDriver: ZarinPalDriver = getPaymentDriver("zarinpal")
-zarinPalDriver.setToken("token")
-const AMOUNT = 100000
 app.post("/payment/checkout", async (req: Request, res: Response) => {
+    const zarinPalDriver = getPaymentDriver('zarinpal')
+    
+    zarinPalDriver.setToken("token")
+    const AMOUNT = 100000
     const result = await zarinPalDriver.request({
         amount: AMOUNT,
         callback_url: "http://localhost:3000/payment/checkout/cb",
@@ -33,7 +36,12 @@ app.post("/payment/checkout", async (req: Request, res: Response) => {
 })
 
 app.get("/payment/checkout/cb", async (req: Request, res: Response) => {
+    const zarinPalDriver = getPaymentDriver('zarinpal')
+    const AMOUNT = 100000
+    zarinPalDriver.setToken("token")
+
     const Status = String(req.query.Status)
+    
     if (Status === "OK") {
         const verifyResult = await zarinPalDriver.verify({
             amount: AMOUNT,
@@ -58,4 +66,48 @@ app.get("/payment/checkout/cb", async (req: Request, res: Response) => {
     }
 })
 
-console.log(`port: ${3000}`)
+app.get('/payment/zibal/checkout', async (req: Request, res: Response) => { 
+    const zibalDriver = getPaymentDriver('zibal')
+    const AMOUNT = 10
+    const result: TransactionCreateResponseZibal = await zibalDriver.request({
+        amount: AMOUNT,
+        callbackUrl: 'http://localhost:3000/payment/zibal/checkout/cb',
+        description: 'test description',
+    }, true)
+    if (result.isError) {
+        res.status(500).json({
+            success: false,
+            message: result.error?.message,
+        })
+    } else {
+        res.status(200).json({
+            success: true,
+            trackId: result.data?.trackId,
+            url: result.data?.url,
+        })
+    }
+})
+
+app.get('/payment/zibal/checkout/cb', async (req: Request, res: Response) => { 
+    const zibalDriver = getPaymentDriver('zibal')
+    const AMOUNT = 1000
+
+    const response = await zibalDriver.verify({
+        trackId: String(req.query.trackId)
+    },true)
+
+    if (response.isError) {
+        res.status(500).json({
+            success: false,
+            message: response.error?.message,
+        })
+    } else {
+        res.status(200).json({
+            success: true,
+            data: response.data,
+        })
+    }
+
+})
+
+console.log("Server is running on port 3000")

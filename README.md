@@ -7,10 +7,13 @@
 **easypay.js** is a comprehensive payment service library designed specifically for handling various Iranian payment gateways with ease.
 
 ## Features
-
-- **Support for ZarinPal**: Seamlessly integrate with ZarinPal to facilitate online payments.
 - **Extensible**: Easily extend the library to support other Iranian payment gateways in the future.
 - **Simple Integration**: Designed for developers to quickly integrate payment functionalities into their applications.
+
+## Supported Gateways
+- [x] ZarinPal
+- [x] IDPay
+- [x] Zibal
 
 ## Installation
 
