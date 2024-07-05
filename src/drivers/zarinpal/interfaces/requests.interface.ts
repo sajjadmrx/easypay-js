@@ -2,54 +2,27 @@
  * Represents the input structure for creating a transaction with ZarinPal.
  *
  * @interface TransactionCreateInputZp
+ * @property {string} merchant_id Merchant ID, if available (optional).
+ * @property {number} amount Amount for the transaction.
+ * @property {string} callback_url Callback URL to redirect after the transaction.
+ * @property {string} description Description for the transaction.
+ * @property {"IRR" | "IRT"} currency Currency type for the transaction, either "IRR" or "IRT" (optional).
+ * @property {object} metadata Additional metadata for the transaction.
+ * @property {string} metadata.mobile Mobile number of the payer (optional).
+ * @property {string} metadata.email Email address of the payer (optional).
+ * @property {string} metadata.order_id Order ID for the transaction (optional).
  */
 export interface TransactionCreateInputZp {
-  /**
-   * Merchant ID, if available.
-   *
-   * @type {string}
-   * @memberof TransactionCreateInputZp
-   */
   merchant_id?: string
 
-  /**
-   * Amount for the transaction.
-   *
-   * @type {number}
-   * @memberof TransactionCreateInputZp
-   */
   amount: number
 
-  /**
-   * Callback URL to redirect after the transaction.
-   *
-   * @type {string}
-   * @memberof TransactionCreateInputZp
-   */
   callback_url: string
 
-  /**
-   * Description for the transaction.
-   *
-   * @type {string}
-   * @memberof TransactionCreateInputZp
-   */
   description: string
 
-  /**
-   * Currency type for the transaction, either "IRR" or "IRT".
-   *
-   * @type {"IRR" | "IRT"}
-   * @memberof TransactionCreateInputZp
-   */
   currency?: 'IRR' | 'IRT'
 
-  /**
-   * Additional metadata for the transaction.
-   *
-   * @type {{ mobile?: string; email?: string; order_id?: string }}
-   * @memberof TransactionCreateInputZp
-   */
   metadata?: {
     mobile?: string
     email?: string
@@ -63,14 +36,9 @@ export interface TransactionCreateInputZp {
  *
  * @interface TransactionVerifyInputZp
  * @extends {Pick<TransactionCreateInputZp, "merchant_id" | "amount">}
+ * @property {string} authority Transaction authority.
  */
 export interface TransactionVerifyInputZp extends Pick<TransactionCreateInputZp, 'merchant_id' | 'amount'> {
-  /**
-   * Transaction authority.
-   *
-   * @type {string}
-   * @memberof TransactionVerifyInputZp
-   */
   authority: string
 }
 
@@ -78,30 +46,18 @@ export interface TransactionVerifyInputZp extends Pick<TransactionCreateInputZp,
  * Represents the error structure for ZarinPal transactions.
  *
  * @interface TransactionErrorZp
+ * @property {number} code Error code.
+ * @property {string} message Error message.
+ * @property {array} validations Validation errors.
+ * @property {string} validations[].field Field name.
+ * @property {string} validations[].message Error message for the field.
+ * @property {string} validations[].code Error code for the field.
  */
 export interface TransactionErrorZp {
-  /**
-   * Error code.
-   *
-   * @type {number}
-   * @memberof TransactionErrorZp
-   */
   code: number
 
-  /**
-   * Error message.
-   *
-   * @type {string}
-   * @memberof TransactionErrorZp
-   */
   message: string
 
-  /**
-   * Validation errors related to the transaction input.
-   *
-   * @type {Record<keyof TransactionCreateInputZp, string>[]}
-   * @memberof TransactionErrorZp
-   */
   validations: Record<keyof TransactionCreateInputZp, string>[]
 }
 
@@ -109,22 +65,19 @@ export interface TransactionErrorZp {
  * Represents the response structure for creating a transaction with ZarinPal.
  *
  * @interface TransactionCreateResponseZp
+ * @property {boolean} isError Indicates if there's an error in the response.
+ * @property {object} data Data related to the transaction if successful.
+ * @property {number} data.code Transaction code.
+ * @property {string} data.message Transaction message.
+ * @property {string} data.authority Transaction authority.
+ * @property {string} data.fee_type Fee type for the transaction.
+ * @property {number} data.fee Fee amount for the transaction.
+ * @property {string} data.url URL to redirect the user to.
+ * @property {TransactionErrorZp} error Error details if an error occurred.
  */
 export interface TransactionCreateResponseZp {
-  /**
-   * Indicates if there's an error in the response.
-   *
-   * @type {boolean}
-   * @memberof TransactionCreateResponseZp
-   */
   isError: boolean
 
-  /**
-   * Data related to the transaction if successful.
-   *
-   * @type {{ code: number; message: string; authority: string; fee_type: string; fee: number; url: string }}
-   * @memberof TransactionCreateResponseZp
-   */
   data: {
     code: number
     message: string
@@ -134,12 +87,6 @@ export interface TransactionCreateResponseZp {
     url: string
   }
 
-  /**
-   * Error details if an error occurred.
-   *
-   * @type {TransactionErrorZp}
-   * @memberof TransactionCreateResponseZp
-   */
   error: TransactionErrorZp
 }
 
@@ -147,22 +94,20 @@ export interface TransactionCreateResponseZp {
  * Represents the response structure for verifying a transaction with ZarinPal.
  *
  * @interface TransactionVerifyResponseZp
+ * @property {boolean} isError Indicates if there's an error in the response.
+ * @property {object} data Data related to the verified transaction if successful.
+ * @property {number} data.code Transaction code.
+ * @property {string} data.message Transaction message.
+ * @property {string} data.card_hash Card hash for the transaction.
+ * @property {string} data.card_pan Card PAN for the transaction.
+ * @property {number} data.ref_id Reference ID for the transaction.
+ * @property {string} data.fee_type Fee type for the transaction.
+ * @property {number} data.fee Fee amount for the transaction.
+ * @property {TransactionErrorZp} error Error details if an error occurred.
  */
 export interface TransactionVerifyResponseZp {
-  /**
-   * Indicates if there's an error in the response.
-   *
-   * @type {boolean}
-   * @memberof TransactionVerifyResponseZp
-   */
   isError: boolean
 
-  /**
-   * Data related to the verified transaction if successful.
-   *
-   * @type {{ code: number; message: string; card_hash: string; card_pan: string; ref_id: number; fee_type: string; fee: number }}
-   * @memberof TransactionVerifyResponseZp
-   */
   data: {
     code: number
     message: string
@@ -173,11 +118,5 @@ export interface TransactionVerifyResponseZp {
     fee: number
   }
 
-  /**
-   * Error details if an error occurred.
-   *
-   * @type {TransactionErrorZp}
-   * @memberof TransactionVerifyResponseZp
-   */
   error: TransactionErrorZp
 }
