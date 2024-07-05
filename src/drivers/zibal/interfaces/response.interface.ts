@@ -4,7 +4,7 @@
  * @interface TransactionCreateResponseZibal
  * @property {boolean} isError Indicates if there's an error in the response.
  * @property {object} data Data related to the transaction if successful.
- * @property {string} data.trackId Track ID of the transaction.
+ * @property {number} data.trackId Track ID of the transaction.
  * @property {string} data.url URL to redirect the user to.
  * @property {object} error Error details if an error occurred.
  * @property {string} error.message Error message.
@@ -13,7 +13,7 @@
 export interface TransactionCreateResponseZibal {
   isError: boolean
   data: {
-    trackId: string
+    trackId: number
     url: string
   } | null
   error: {
