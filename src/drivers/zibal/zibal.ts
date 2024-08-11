@@ -90,7 +90,7 @@ export class ZibalDriver {
   async verify(data: TransactionVerifyInputZibal, sandbox: boolean): Promise<TransactionVerifyResponseZibal> {
     try {
       if (!sandbox) {
-        if (!this.merchant || !data.merchant) {
+        if (!this.merchant && !data.merchant) {
           throw new Error(`merchant is required for this request`)
         }
       }
