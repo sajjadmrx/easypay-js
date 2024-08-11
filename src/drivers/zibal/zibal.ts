@@ -31,7 +31,7 @@ export class ZibalDriver {
   async request(data: TransactionCreateInputZibal, sandbox: boolean = false): Promise<TransactionCreateResponseZibal> {
     try {
       if (!sandbox) {
-        if (!this.merchant || !data.merchant) {
+        if (!this.merchant && !data.merchant) {
           throw new Error(`merchant is required for this request`)
         }
       }
