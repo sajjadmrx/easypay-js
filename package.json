@@ -1,6 +1,6 @@
 {
   "name": "easypay.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "a payment service library for handling different Iranian payment gateways",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
