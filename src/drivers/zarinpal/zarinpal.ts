@@ -8,6 +8,25 @@ import {
 } from './interfaces/requests.interface'
 import { zarinPalErrors } from './enums/errors.enum'
 
+interface Verify {
+  data: {
+    code: number
+    message: string
+    card_hash: string
+    card_pan: string
+    ref_id: number
+    fee_type: string
+    fee: number
+  }
+  errors: {
+    code: number
+
+    message: string
+
+    validations: Record<keyof TransactionCreateInputZp, string>[]
+  }
+}
+
 /**
  * Class to interact with the ZarinPal payment gateway.
  *
@@ -91,28 +110,36 @@ export class ZarinPalDriver {
   async verify(data: TransactionVerifyInputZp, sandbox: boolean = false): Promise<TransactionVerifyResponseZp> {
     try {
       const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_VERIFY : ZarinpalUrls.VERIFY
-      const { data: dataAxios } = await axios.post(requestUrl, {
+      const { data: verifyData } = await axios.post<Verify>(requestUrl, {
         ...data,
         merchant_id: data.merchant_id || this.merchant_id
       })
 
-      dataAxios.isError = dataAxios.code != 100
-      if (dataAxios.isError) {
+      const code: number | undefined = verifyData.data.code
+
+      let isError = false
+      if (!code || code !== 100) {
+        isError = true
+      }
+
+      if (isError) {
         return {
-          data: dataAxios.data,
           isError: true,
           error: {
-            code: dataAxios.errors.code,
-            validations: dataAxios.errors.validations,
-            message: zarinPalErrors[dataAxios.errors.code]
+            code: verifyData.errors.code || verifyData.data.code,
+            validations: verifyData.errors.validations,
+            message: zarinPalErrors[verifyData.errors.code || verifyData.data.code]
           }
         }
       }
-      return dataAxios
+
+      return {
+        data: verifyData.data,
+        isError: false
+      }
     } catch (error: any) {
       if (error.isAxiosError) {
         return {
-          data: error.response.data.data,
           isError: true,
           error: {
             code: error.response.data?.errors?.code || error.response.status,

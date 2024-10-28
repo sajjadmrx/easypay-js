@@ -93,7 +93,7 @@ export interface TransactionCreateResponseZp {
 /**
  * Represents the response structure for verifying a transaction with ZarinPal.
  *
- * @interface TransactionVerifyResponseZp
+ * @type TransactionVerifyResponseZp
  * @property {boolean} isError Indicates if there's an error in the response.
  * @property {object} data Data related to the verified transaction if successful.
  * @property {number} data.code Transaction code.
@@ -105,18 +105,20 @@ export interface TransactionCreateResponseZp {
  * @property {number} data.fee Fee amount for the transaction.
  * @property {TransactionErrorZp} error Error details if an error occurred.
  */
-export interface TransactionVerifyResponseZp {
-  isError: boolean
-
-  data: {
-    code: number
-    message: string
-    card_hash: string
-    card_pan: string
-    ref_id: number
-    fee_type: string
-    fee: number
-  }
-
-  error: TransactionErrorZp
-}
+export type TransactionVerifyResponseZp =
+  | {
+      isError: true
+      error: TransactionErrorZp
+    }
+  | {
+      isError: false
+      data: {
+        code: number
+        message: string
+        card_hash: string
+        card_pan: string
+        ref_id: number
+        fee_type: string
+        fee: number
+      }
+    }
