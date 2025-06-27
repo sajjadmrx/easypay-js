@@ -11,6 +11,7 @@ import { zibalMessages } from './enums/message.enum'
  */
 export class ZibalDriver {
   private merchant: string | null = null
+  private timeout: number = 1000 * 10 // 10 seconds by default
 
   setToken(merchant: string): this {
     if (!merchant) {
@@ -18,6 +19,18 @@ export class ZibalDriver {
     }
 
     this.merchant = merchant
+    return this
+  }
+
+  /**
+   * Set requests timeout for the Zibal driver.
+   *
+   * @param {string} timeoutInMs - Request timeout
+   * @returns {this} Instance of ZibalDriver.
+   */
+  setTimeout(timeoutInMs: number): this {
+    if (!timeoutInMs || timeoutInMs < 0) throw new Error('invalid parameters')
+    this.timeout = timeoutInMs
     return this
   }
 
@@ -45,7 +58,10 @@ export class ZibalDriver {
       const { data: dataAxios } = await axios.post(requestUrl, {
         ...data,
         merchant: sandbox ? 'zibal' : this.merchant || data.merchant
-      })
+      },
+    {
+      timeout: this.timeout
+    })
 
       dataAxios.isError = dataAxios.result !== 100
       if (dataAxios.isError) {
@@ -104,6 +120,8 @@ export class ZibalDriver {
       const { data: dataAxios } = await axios.post(requestUrl, {
         ...data,
         merchant: sandbox ? 'zibal' : this.merchant || data.merchant
+      }, {
+        timeout: this.timeout
       })
 
       dataAxios.isError = dataAxios.result !== 100
