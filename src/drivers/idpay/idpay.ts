@@ -11,6 +11,7 @@ import { TransactionCreateResponseIdPay, TransactionVerifyResponseIdPay } from '
 export class IdPayDriver {
   private token: string | null = null
   private sandBox: boolean = false
+  private timeout: number = 1000 * 10 // 10 seconds by default
 
   /**
    * Set the API token for authentication.
@@ -20,6 +21,18 @@ export class IdPayDriver {
    */
   setToken(token: string): this {
     this.token = token
+    return this
+  }
+  
+  /**
+   * Set requests timeout for the Zibal driver.
+   *
+   * @param {string} timeoutInMs - Request timeout
+   * @returns {this} Instance of ZibalDriver.
+   */
+  setTimeout(timeoutInMs: number): this {
+    if (!timeoutInMs || timeoutInMs < 0) throw new Error('invalid parameters')
+    this.timeout = timeoutInMs
     return this
   }
 
@@ -43,7 +56,8 @@ export class IdPayDriver {
   async request(dataInput: TransactionCreateInputIdPay): Promise<TransactionCreateResponseIdPay> {
     try {
       const { data } = await axios.post(IdPayUrls.REQUEST, dataInput, {
-        headers: this.getHeader(this.token || dataInput.token, this.sandBox)
+        headers: this.getHeader(this.token || dataInput.token, this.sandBox),
+        timeout: this.timeout
       })
       return {
         isError: false,
@@ -58,8 +72,8 @@ export class IdPayDriver {
       if (error.isAxiosError) {
         return {
           isError: true,
-          error_message: error.response.data.error_message,
-          error_code: error.response.data.error_code,
+          error_message: error.response?.data?.error_message,
+          error_code: error.response?.data?.error_code,
           data: {} as any
         }
       } else throw error
@@ -75,7 +89,8 @@ export class IdPayDriver {
   async verify(dataInput: TransactionVerifyInputIdPay): Promise<TransactionVerifyResponseIdPay> {
     try {
       const { data } = await axios.post(IdPayUrls.VERIFY, dataInput, {
-        headers: this.getHeader(this.token || dataInput.token, this.sandBox)
+        headers: this.getHeader(this.token || dataInput.token, this.sandBox),
+        timeout: this.timeout
       })
       return {
         isError: false,
@@ -87,8 +102,8 @@ export class IdPayDriver {
       if (error.isAxiosError) {
         return {
           isError: true,
-          error_message: error.response.data.error_message,
-          error_code: error.response.data.error_code,
+          error_message: error.response?.data?.error_message,
+          error_code: error.response?.data?.error_code,
           data: {} as any
         }
       } else throw error

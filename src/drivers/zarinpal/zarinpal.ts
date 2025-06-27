@@ -34,6 +34,7 @@ interface Verify {
  */
 export class ZarinPalDriver {
   private merchant_id: string | null = null
+  private timeout: number = 1000 * 10 // 10 seconds by default
 
   /**
    * Set the merchant ID for the ZarinPal driver.
@@ -46,6 +47,20 @@ export class ZarinPalDriver {
     this.merchant_id = merchant_id
     return this
   }
+
+  /**
+   * Set requests timeout for the ZarinPal driver.
+   *
+   * @param {string} timeoutInMs - Request timeout
+   * @returns {this} Instance of ZarinPalDriver.
+   */
+  setTimeout(timeoutInMs: number): this {
+    if (!timeoutInMs || timeoutInMs < 0) throw new Error('invalid parameters')
+    this.timeout = timeoutInMs
+    return this
+  }
+
+
 
   /**
    * Create a payment request to ZarinPal.
@@ -63,6 +78,8 @@ export class ZarinPalDriver {
       const { data: dataAxios } = await axios.post(requestUrl, {
         ...data,
         merchant_id: data.merchant_id || this.merchant_id
+      }, {
+        timeout: this.timeout
       })
 
       dataAxios.isError = dataAxios.errors.code < 0
@@ -86,10 +103,10 @@ export class ZarinPalDriver {
     } catch (error: any) {
       if (error.isAxiosError) {
         return {
-          data: error.response.data.data,
+          data: error.response?.data?.data,
           isError: true,
           error: {
-            code: error.response.data?.errors?.code || error.response.status,
+            code: error.response.data?.errors?.code || error.response?.status,
             message: zarinPalErrors[error.response.data?.errors?.code] || error.message,
             validations: []
           }
@@ -113,7 +130,10 @@ export class ZarinPalDriver {
       const { data: verifyData } = await axios.post<Verify>(requestUrl, {
         ...data,
         merchant_id: data.merchant_id || this.merchant_id
-      })
+      },
+        {
+          timeout: this.timeout
+        })
 
       const code: number | undefined = verifyData.data.code
 
@@ -142,7 +162,7 @@ export class ZarinPalDriver {
         return {
           isError: true,
           error: {
-            code: error.response.data?.errors?.code || error.response.status,
+            code: error.response.data?.errors?.code || error.response?.status,
             message: zarinPalErrors[error.response.data?.errors?.code] || error.message,
             validations: []
           }
