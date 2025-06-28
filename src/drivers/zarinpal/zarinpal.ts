@@ -89,7 +89,8 @@ export class ZarinPalDriver {
           error: {
             message: zarinPalErrors[dataAxios.errors.code],
             code: dataAxios.errors.code,
-            validations: dataAxios.errors.validations
+            validations: dataAxios.errors.validations,
+            type: 'payment' // This is a payment creation failure
           },
           isError: true
         }
@@ -102,13 +103,31 @@ export class ZarinPalDriver {
       return dataAxios
     } catch (error: any) {
       if (error.isAxiosError) {
+        // Check if this is a network error (no response received)
+        if (!error.response) {
+          // Network timeout, connection refused, DNS issues, etc.
+          return {
+            data: error.response?.data?.data,
+            isError: true,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: `Network error: ${error.message}`,
+              validations: [],
+              type: 'network' // This is a network-related error
+            }
+          }
+        }
+        
+        // This is an HTTP error (response received but with error status)
+        const apiErrorCode = error.response.data?.errors?.code
         return {
           data: error.response?.data?.data,
           isError: true,
           error: {
-            code: error.response.data?.errors?.code || error.response?.status,
-            message: zarinPalErrors[error.response.data?.errors?.code] || error.message,
-            validations: []
+            code: apiErrorCode || error.response?.status,
+            message: zarinPalErrors[apiErrorCode] || `HTTP Error: ${error.message}`,
+            validations: error.response.data?.errors?.validations || [],
+            type: apiErrorCode ? 'payment' : 'api' // Distinguish between payment errors and API errors
           }
         }
       }
@@ -148,7 +167,8 @@ export class ZarinPalDriver {
           error: {
             code: verifyData.errors.code || verifyData.data.code,
             validations: verifyData.errors.validations,
-            message: zarinPalErrors[verifyData.errors.code || verifyData.data.code]
+            message: zarinPalErrors[verifyData.errors.code || verifyData.data.code],
+            type: 'payment' // This is a payment verification failure
           }
         }
       }
@@ -159,15 +179,35 @@ export class ZarinPalDriver {
       }
     } catch (error: any) {
       if (error.isAxiosError) {
+        // Check if this is a network error (no response received)
+        if (!error.response) {
+          // Network timeout, connection refused, DNS issues, etc.
+          return {
+            isError: true,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: `Network error: ${error.message}`,
+              validations: [],
+              type: 'network' // This is a network-related error
+            }
+          }
+        }
+        
+        // This is an HTTP error (response received but with error status)
+        // Could be server error (5xx) or API error (4xx)
+        const apiErrorCode = error.response.data?.errors?.code
         return {
           isError: true,
           error: {
-            code: error.response.data?.errors?.code || error.response?.status,
-            message: zarinPalErrors[error.response.data?.errors?.code] || error.message,
-            validations: []
+            code: apiErrorCode || error.response.status,
+            message: zarinPalErrors[apiErrorCode] || `HTTP Error: ${error.message}`,
+            validations: error.response.data?.errors?.validations || [],
+            type: apiErrorCode ? 'payment' : 'api' // Distinguish between payment errors and API errors
           }
         }
       }
+      
+      // Non-axios error, re-throw
       error.isError = true
       throw error
     }

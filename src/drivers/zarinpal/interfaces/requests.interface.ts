@@ -46,19 +46,22 @@ export interface TransactionVerifyInputZp extends Pick<TransactionCreateInputZp,
  * Represents the error structure for ZarinPal transactions.
  *
  * @interface TransactionErrorZp
- * @property {number} code Error code.
+ * @property {number | string} code Error code (number for payment errors, string for network errors).
  * @property {string} message Error message.
  * @property {array} validations Validation errors.
  * @property {string} validations[].field Field name.
  * @property {string} validations[].message Error message for the field.
  * @property {string} validations[].code Error code for the field.
+ * @property {'payment' | 'network' | 'api'} type Error type to distinguish between payment failures, network issues, and API errors.
  */
 export interface TransactionErrorZp {
-  code: number
+  code: number | string
 
   message: string
 
   validations: Record<keyof TransactionCreateInputZp, string>[]
+  
+  type?: 'payment' | 'network' | 'api'
 }
 
 /**
