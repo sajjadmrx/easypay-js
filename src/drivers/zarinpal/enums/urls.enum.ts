@@ -50,5 +50,21 @@ export enum ZarinpalUrls {
    * @type {string}
    * @memberof ZarinpalUrls
    */
-  SANDBOX_REQUEST_PAGE = 'https://sandbox.zarinpal.com/pg/StartPay/'
+  SANDBOX_REQUEST_PAGE = 'https://sandbox.zarinpal.com/pg/StartPay/',
+
+  /**
+   * URL for inquerying a payment transaction.
+   *
+   * @type {string}
+   * @memberof ZarinpalUrls
+   */
+  INQUERY = 'https://payment.zarinpal.com/pg/v4/payment/inquiry.json',
+
+  /**
+   * URL for inquerying a payment transaction in the sandbox environment.
+   *
+   * @type {string}
+   * @memberof ZarinpalUrls
+   */
+  SANDBOX_INQUERY = 'https://sandbox.zarinpal.com/pg/v4/payment/inquiry.json'
 }
