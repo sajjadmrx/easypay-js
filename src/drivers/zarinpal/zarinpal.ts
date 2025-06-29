@@ -3,6 +3,8 @@ import { ZarinpalUrls } from './enums/urls.enum'
 import {
   TransactionCreateInputZp,
   TransactionCreateResponseZp,
+  TransactionInquiryInputZp,
+  TransactionInquiryResponseZp,
   TransactionVerifyInputZp,
   TransactionVerifyResponseZp
 } from './interfaces/requests.interface'
@@ -60,8 +62,6 @@ export class ZarinPalDriver {
     return this
   }
 
-
-
   /**
    * Create a payment request to ZarinPal.
    *
@@ -75,12 +75,16 @@ export class ZarinPalDriver {
 
       const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_REQUEST : ZarinpalUrls.REQUEST
 
-      const { data: dataAxios } = await axios.post(requestUrl, {
-        ...data,
-        merchant_id: data.merchant_id || this.merchant_id
-      }, {
-        timeout: this.timeout
-      })
+      const { data: dataAxios } = await axios.post(
+        requestUrl,
+        {
+          ...data,
+          merchant_id: data.merchant_id || this.merchant_id
+        },
+        {
+          timeout: this.timeout
+        }
+      )
 
       dataAxios.isError = dataAxios.errors.code < 0
       if (dataAxios.isError) {
@@ -117,7 +121,7 @@ export class ZarinPalDriver {
             }
           }
         }
-        
+
         // This is an HTTP error (response received but with error status)
         const apiErrorCode = error.response.data?.errors?.code
         return {
@@ -146,13 +150,16 @@ export class ZarinPalDriver {
   async verify(data: TransactionVerifyInputZp, sandbox: boolean = false): Promise<TransactionVerifyResponseZp> {
     try {
       const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_VERIFY : ZarinpalUrls.VERIFY
-      const { data: verifyData } = await axios.post<Verify>(requestUrl, {
-        ...data,
-        merchant_id: data.merchant_id || this.merchant_id
-      },
+      const { data: verifyData } = await axios.post<Verify>(
+        requestUrl,
+        {
+          ...data,
+          merchant_id: data.merchant_id || this.merchant_id
+        },
         {
           timeout: this.timeout
-        })
+        }
+      )
 
       const code: number | undefined = verifyData.data.code
 
@@ -192,7 +199,7 @@ export class ZarinPalDriver {
             }
           }
         }
-        
+
         // This is an HTTP error (response received but with error status)
         // Could be server error (5xx) or API error (4xx)
         const apiErrorCode = error.response.data?.errors?.code
@@ -206,7 +213,81 @@ export class ZarinPalDriver {
           }
         }
       }
-      
+
+      // Non-axios error, re-throw
+      error.isError = true
+      throw error
+    }
+  }
+
+  /**
+   * Inquiry a payment transaction with ZarinPal.
+   *
+   * @param {string} authority - Transaction unique key.
+   * @param {boolean} [sandbox=false] - Flag to determine whether to use the sandbox environment.
+   * @returns {Promise<TransactionInquiryResponseZp>} Response from the ZarinPal API for inquerying a transaction.
+   */
+  async inquiry(data: TransactionInquiryInputZp, sandbox: boolean = false): Promise<TransactionInquiryResponseZp> {
+    try {
+      if (!data.authority) throw new Error('invalid parameters')
+
+      const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_INQUERY : ZarinpalUrls.INQUERY
+
+      const { data: dataAxios } = await axios.post(
+        requestUrl,
+        {
+          ...data,
+          merchant_id: data.merchant_id || this.merchant_id
+        },
+        {
+          timeout: this.timeout
+        }
+      )
+
+      dataAxios.isError = dataAxios.errors.code < 0
+      if (dataAxios.isError) {
+        return {
+          isError: true,
+          error: {
+            message: zarinPalErrors[dataAxios.errors.code],
+            code: dataAxios.errors.code,
+            validations: dataAxios.errors.validations,
+            type: 'payment' // This is a payment creation failure
+          }
+        }
+      }
+
+      return dataAxios
+    } catch (error: any) {
+      if (error.isAxiosError) {
+        // Check if this is a network error (no response received)
+        if (!error.response) {
+          // Network timeout, connection refused, DNS issues, etc.
+          return {
+            isError: true,
+            error: {
+              code: 'NETWORK_ERROR',
+              message: `Network error: ${error.message}`,
+              validations: [],
+              type: 'network' // This is a network-related error
+            }
+          }
+        }
+
+        // This is an HTTP error (response received but with error status)
+        // Could be server error (5xx) or API error (4xx)
+        const apiErrorCode = error.response.data?.errors?.code
+        return {
+          isError: true,
+          error: {
+            code: apiErrorCode || error.response.status,
+            message: zarinPalErrors[apiErrorCode] || `HTTP Error: ${error.message}`,
+            validations: error.response.data?.errors?.validations || [],
+            type: apiErrorCode ? 'payment' : 'api' // Distinguish between payment errors and API errors
+          }
+        }
+      }
+
       // Non-axios error, re-throw
       error.isError = true
       throw error
