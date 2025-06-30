@@ -37,6 +37,7 @@ interface Verify {
 export class ZarinPalDriver {
   private merchant_id: string | null = null
   private timeout: number = 1000 * 10 // 10 seconds by default
+  private customDomain: string | null = null // Custom domain for ZarinPal API requests
 
   /**
    * Set the merchant ID for the ZarinPal driver.
@@ -63,6 +64,56 @@ export class ZarinPalDriver {
   }
 
   /**
+   * Set custom domain for ZarinPal API requests.
+   * If not set, will fallback to default ZarinPal domains.
+   *
+   * @param {string} domain - Custom domain (e.g., 'api.example.com')
+   * @returns {this} Instance of ZarinPalDriver.
+   */
+  setCustomDomain(domain: string): this {
+    if (!domain || typeof domain !== 'string') throw new Error('invalid domain parameter')
+    // Remove trailing slash and protocol if provided
+    this.customDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    return this
+  }
+
+  /**
+   * Get the appropriate URL for a request, using custom domain if set, fallback to default.
+   *
+   * @private
+   * @param {string} defaultUrl - Default ZarinPal URL from enum
+   * @returns {string} The constructed URL
+   */
+  private getUrl(defaultUrl: string): string {
+    if (!this.customDomain) {
+      return defaultUrl
+    }
+
+    // Extract the path from the default URL
+    const urlObj = new URL(defaultUrl)
+    const path = urlObj.pathname
+
+    // Construct custom URL with custom domain
+    return `https://${this.customDomain}${path}`
+  }
+
+  /**
+   * Get the appropriate payment page URL, using custom domain if set, fallback to default.
+   *
+   * @private
+   * @param {boolean} sandbox - Whether this is for sandbox environment
+   * @returns {string} The payment page base URL
+   */
+  private getPaymentPageUrl(sandbox: boolean = false): string {
+    if (!this.customDomain) {
+      return sandbox ? ZarinpalUrls.SANDBOX_REQUEST_PAGE : ZarinpalUrls.REQUEST_PAGE
+    }
+
+    // For custom domain, use the same path structure as default
+    return `https://${this.customDomain}/pg/StartPay`
+  }
+
+  /**
    * Create a payment request to ZarinPal.
    *
    * @param {TransactionCreateInputZp} data - Input data for creating the transaction.
@@ -73,7 +124,8 @@ export class ZarinPalDriver {
     try {
       if (!data.amount || !data.description || !data.callback_url) throw new Error('invalid parameters')
 
-      const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_REQUEST : ZarinpalUrls.REQUEST
+      const defaultRequestUrl = sandbox ? ZarinpalUrls.SANDBOX_REQUEST : ZarinpalUrls.REQUEST
+      const requestUrl = this.getUrl(defaultRequestUrl)
 
       const { data: dataAxios } = await axios.post(
         requestUrl,
@@ -100,9 +152,9 @@ export class ZarinPalDriver {
         }
       }
 
-      const url = sandbox ? ZarinpalUrls.SANDBOX_REQUEST_PAGE : ZarinpalUrls.REQUEST_PAGE
+      const paymentPageUrl = this.getPaymentPageUrl(sandbox)
 
-      dataAxios.data.url = `${url}/${dataAxios.data.authority}`
+      dataAxios.data.url = `${paymentPageUrl}/${dataAxios.data.authority}`
 
       return dataAxios
     } catch (error: any) {
@@ -149,7 +201,8 @@ export class ZarinPalDriver {
    */
   async verify(data: TransactionVerifyInputZp, sandbox: boolean = false): Promise<TransactionVerifyResponseZp> {
     try {
-      const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_VERIFY : ZarinpalUrls.VERIFY
+      const defaultVerifyUrl = sandbox ? ZarinpalUrls.SANDBOX_VERIFY : ZarinpalUrls.VERIFY
+      const requestUrl = this.getUrl(defaultVerifyUrl)
       const { data: verifyData } = await axios.post<Verify>(
         requestUrl,
         {
@@ -231,7 +284,8 @@ export class ZarinPalDriver {
     try {
       if (!data.authority) throw new Error('invalid parameters')
 
-      const requestUrl = sandbox ? ZarinpalUrls.SANDBOX_INQUERY : ZarinpalUrls.INQUERY
+      const defaultInquiryUrl = sandbox ? ZarinpalUrls.SANDBOX_INQUERY : ZarinpalUrls.INQUERY
+      const requestUrl = this.getUrl(defaultInquiryUrl)
 
       const { data: dataAxios } = await axios.post(
         requestUrl,
