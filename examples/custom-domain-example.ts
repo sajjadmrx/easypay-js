@@ -9,6 +9,8 @@ zarinpal.setTimeout(15000) // 15 seconds timeout
 
 // NEW: Set custom domain (this is optional)
 // If not set, it will fallback to default ZarinPal domains
+// IMPORTANT: Custom domain is ONLY used for API calls (request, verify, inquiry)
+// Payment page URLs always use default ZarinPal domains
 zarinpal.setCustomDomain('api.yourgateway.com')
 
 // Example usage scenarios:
@@ -25,7 +27,8 @@ async function exampleWithCustomDomain() {
 
   if (!result.isError) {
     console.log('Payment URL:', result.data.url) 
-    // This will be: https://api.yourgateway.com/pg/StartPay/{authority}
+    // Payment page URL always uses default ZarinPal domain:
+    // This will be: https://www.zarinpal.com/pg/StartPay/{authority}
   }
 }
 
@@ -60,7 +63,8 @@ async function exampleWithSandbox() {
   
   if (!result.isError) {
     console.log('Sandbox Payment URL:', result.data.url)
-    // This will be: https://sandbox.yourgateway.com/pg/StartPay/{authority}
+    // Payment page URL always uses default ZarinPal sandbox domain:
+    // This will be: https://sandbox.zarinpal.com/pg/StartPay/{authority}
   }
 }
 
