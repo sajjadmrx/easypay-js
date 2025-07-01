@@ -67,6 +67,9 @@ export class ZarinPalDriver {
    * Set custom domain for ZarinPal API requests.
    * If not set, will fallback to default ZarinPal domains.
    *
+   * IMPORTANT: Custom domain is ONLY used for API calls (request, verify, inquiry).
+   * Payment page URLs always use default ZarinPal domains to ensure proper payment processing.
+   *
    * @param {string} domain - Custom domain (e.g., 'api.example.com')
    * @returns {this} Instance of ZarinPalDriver.
    */
@@ -98,19 +101,16 @@ export class ZarinPalDriver {
   }
 
   /**
-   * Get the appropriate payment page URL, using custom domain if set, fallback to default.
+   * Get the appropriate payment page URL. Always uses default ZarinPal domains.
+   * Payment pages should not use custom domains as they host the actual payment form.
    *
    * @private
    * @param {boolean} sandbox - Whether this is for sandbox environment
    * @returns {string} The payment page base URL
    */
   private getPaymentPageUrl(sandbox: boolean = false): string {
-    if (!this.customDomain) {
-      return sandbox ? ZarinpalUrls.SANDBOX_REQUEST_PAGE : ZarinpalUrls.REQUEST_PAGE
-    }
-
-    // For custom domain, use the same path structure as default
-    return `https://${this.customDomain}/pg/StartPay`
+    // Payment page always uses default ZarinPal domains
+    return sandbox ? ZarinpalUrls.SANDBOX_REQUEST_PAGE : ZarinpalUrls.REQUEST_PAGE
   }
 
   /**
@@ -154,7 +154,9 @@ export class ZarinPalDriver {
 
       const paymentPageUrl = this.getPaymentPageUrl(sandbox)
 
-      dataAxios.data.url = `${paymentPageUrl}/${dataAxios.data.authority}`
+      // Handle trailing slash to avoid double slashes
+      const cleanUrl = paymentPageUrl.endsWith('/') ? paymentPageUrl.slice(0, -1) : paymentPageUrl
+      dataAxios.data.url = `${cleanUrl}/${dataAxios.data.authority}`
 
       return dataAxios
     } catch (error: any) {

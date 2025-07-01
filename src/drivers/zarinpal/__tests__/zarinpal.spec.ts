@@ -157,7 +157,7 @@ describe('ZarinPalDriver', () => {
       )
     })
 
-    it('should use custom domain for payment page URL', async () => {
+    it('should always use default ZarinPal domain for payment page URL', async () => {
       const customDomain = 'api.example.com'
       driver.setCustomDomain(customDomain)
 
@@ -188,8 +188,9 @@ describe('ZarinPalDriver', () => {
 
       const response = await driver.request(mockData)
 
-      // Verify that the custom domain payment page URL was used
-      expect(response.data.url).toBe('https://api.example.com/pg/StartPay/test-authority')
+      // Verify that the payment page URL always uses default ZarinPal domain
+      // even when custom domain is set (custom domain is only for API calls)
+      expect(response.data.url).toBe('https://www.zarinpal.com/pg/StartPay/test-authority')
     })
 
     it('should fallback to default URLs when no custom domain is set', async () => {
@@ -228,7 +229,7 @@ describe('ZarinPalDriver', () => {
       )
     })
 
-    it('should use custom domain for sandbox environment', async () => {
+    it('should use custom domain for sandbox API calls but default domain for payment page', async () => {
       const customDomain = 'api.example.com'
       driver.setCustomDomain(customDomain)
 
@@ -244,7 +245,7 @@ describe('ZarinPalDriver', () => {
           message: '',
           fee: 100,
           url: '',
-          authority: 'xx',
+          authority: 'test-authority',
           fee_type: ''
         },
         errors: {
@@ -257,14 +258,17 @@ describe('ZarinPalDriver', () => {
 
       mockedAxios.post.mockResolvedValue({ data: expectedResponse })
 
-      await driver.request(mockData, true) // Enable sandbox
+      const response = await driver.request(mockData, true) // Enable sandbox
 
-      // Verify that the custom domain URL was used (with sandbox path)
+      // Verify that the custom domain URL was used for API call
       expect(mockedAxios.post).toHaveBeenCalledWith(
         'https://api.example.com/pg/v4/payment/request.json',
         expect.any(Object),
         expect.any(Object)
       )
+
+      // Verify that payment page URL uses default sandbox domain
+      expect(response.data.url).toBe('https://sandbox.zarinpal.com/pg/StartPay/test-authority')
     })
   })
 })
