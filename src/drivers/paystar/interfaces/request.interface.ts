@@ -24,7 +24,6 @@ export interface TransactionCreateInputPayStar {
   amount: number
   order_id: string
   callback: string
-  sign: string
   name?: string
   phone?: string
   mail?: string

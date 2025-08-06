@@ -139,8 +139,8 @@ export class PayStarDriver {
         throw new Error('gateway_id is required. Set it via setToken() or pass it in data.')
       }
 
-      // Generate signature if not provided
-      const sign = data.sign || this.generateCreateSignature(data.amount, data.order_id, data.callback)
+      // Generate signature 
+      const sign = this.generateCreateSignature(data.amount, data.order_id, data.callback)
 
       // Prepare request payload
       const payload = {
