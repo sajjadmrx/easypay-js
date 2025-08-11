@@ -55,13 +55,16 @@ export class ZibalDriver {
 
       const requestUrl = ZibalUrls.REQUEST
 
-      const { data: dataAxios } = await axios.post(requestUrl, {
-        ...data,
-        merchant: sandbox ? 'zibal' : this.merchant || data.merchant
-      },
-    {
-      timeout: this.timeout
-    })
+      const { data: dataAxios } = await axios.post(
+        requestUrl,
+        {
+          ...data,
+          merchant: sandbox ? 'zibal' : this.merchant || data.merchant
+        },
+        {
+          timeout: this.timeout
+        }
+      )
 
       dataAxios.isError = dataAxios.result !== 100
       if (dataAxios.isError) {
@@ -117,12 +120,16 @@ export class ZibalDriver {
 
       const requestUrl = ZibalUrls.VERIFY
 
-      const { data: dataAxios } = await axios.post(requestUrl, {
-        ...data,
-        merchant: sandbox ? 'zibal' : this.merchant || data.merchant
-      }, {
-        timeout: this.timeout
-      })
+      const { data: dataAxios } = await axios.post(
+        requestUrl,
+        {
+          ...data,
+          merchant: sandbox ? 'zibal' : this.merchant || data.merchant
+        },
+        {
+          timeout: this.timeout
+        }
+      )
 
       dataAxios.isError = dataAxios.result !== 100
 

@@ -23,7 +23,7 @@ export class IdPayDriver {
     this.token = token
     return this
   }
-  
+
   /**
    * Set requests timeout for the Zibal driver.
    *

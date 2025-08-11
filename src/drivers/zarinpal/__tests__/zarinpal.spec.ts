@@ -222,11 +222,7 @@ describe('ZarinPalDriver', () => {
       await driver.request(mockData)
 
       // Verify that the default URL was used
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        ZarinpalUrls.REQUEST,
-        expect.any(Object),
-        expect.any(Object)
-      )
+      expect(mockedAxios.post).toHaveBeenCalledWith(ZarinpalUrls.REQUEST, expect.any(Object), expect.any(Object))
     })
 
     it('should use custom domain for sandbox API calls but default domain for payment page', async () => {
