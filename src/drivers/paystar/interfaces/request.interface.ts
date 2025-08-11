@@ -6,7 +6,6 @@
  * @property {number} amount Desired amount in IRR (minimum 5000).
  * @property {string} order_id Merchant order ID.
  * @property {string} callback Callback URL to redirect after the transaction.
- * @property {string} sign HMAC SHA512 signature.
  * @property {string} name Name of the payer (optional).
  * @property {string} phone Mobile number of the payer (optional).
  * @property {string} mail Email address of the payer (optional).
@@ -47,14 +46,16 @@ export interface TransactionCreateInputPayStar {
  * @property {string} gateway_id Gateway ID for authentication (optional if set via setToken).
  * @property {string} ref_num Reference number from transaction creation.
  * @property {number} amount Transaction amount for verification.
- * @property {string} sign HMAC SHA512 signature including card_number and tracking_code.
+ * @property {string} card_number Card number used in the transaction.
+ * @property {string} tracking_code Tracking code used in the transaction.
  * @link https://docs.paystar.ir
  */
 export interface TransactionVerifyInputPayStar {
   gateway_id?: string
   ref_num: string
   amount: number
-  sign: string
+  card_number: string
+  tracking_code: string
 }
 
 /**
@@ -63,13 +64,9 @@ export interface TransactionVerifyInputPayStar {
  * @interface TransactionInquiryInputPayStar
  * @property {string} gateway_id Gateway ID for authentication (optional if set via setToken).
  * @property {string} ref_num Reference number from transaction creation.
- * @property {number} amount Transaction amount for inquiry.
- * @property {string} sign HMAC SHA512 signature.
  * @link https://docs.paystar.ir
  */
 export interface TransactionInquiryInputPayStar {
   gateway_id?: string
   ref_num: string
-  amount: number
-  sign: string
 }

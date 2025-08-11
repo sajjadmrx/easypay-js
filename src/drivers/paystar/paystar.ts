@@ -23,7 +23,7 @@ import {
 export class PayStarDriver {
   private gateway_id: string | null = null
   private sign_key: string | null = null
-  private timeout: number = 1000 * 10 // 10 seconds by default
+  private timeout: number = 1000 * 10
 
   /**
    * Set the gateway ID for PayStar authentication.
@@ -106,13 +106,9 @@ export class PayStarDriver {
    * @param {string} tracking_code - Tracking code from callback (optional).
    * @returns {string} Generated signature.
    */
-  private generateVerifySignature(
-    ref_num: string,
-    amount: number,
-    card_number: string = '',
-    tracking_code: string = ''
-  ): string {
-    const message = `${ref_num}#${amount}#${card_number}#${tracking_code}`
+  private generateVerifySignature(ref_num: string, amount: number, card_number: string, tracking_code: string): string {
+    const message = `${amount}#${ref_num}#${card_number}#${tracking_code}`
+    console.log(message)
     return this.generateSignature(message)
   }
 
@@ -125,7 +121,6 @@ export class PayStarDriver {
    */
   async request(data: TransactionCreateInputPayStar): Promise<TransactionCreateResponsePayStar> {
     try {
-      // Validate required fields
       if (!data.amount || data.amount < 5000) {
         throw new Error('amount is required and must be at least 5000 IRR')
       }
@@ -133,16 +128,13 @@ export class PayStarDriver {
         throw new Error('order_id and callback are required parameters')
       }
 
-      // Use provided gateway_id or fallback to instance gateway_id
       const gateway_id = data.gateway_id || this.gateway_id
       if (!gateway_id) {
         throw new Error('gateway_id is required. Set it via setToken() or pass it in data.')
       }
 
-      // Generate signature 
       const sign = this.generateCreateSignature(data.amount, data.order_id, data.callback)
 
-      // Prepare request payload
       const payload = {
         ...data,
         gateway_id,
@@ -157,7 +149,6 @@ export class PayStarDriver {
         timeout: this.timeout
       })
 
-      // Check for success response
       if (responseData.status === 1 || responseData.status === 'ok') {
         const token = responseData.data?.token || responseData.token
         const ref_num = responseData.data?.ref_num || responseData.ref_num
@@ -172,7 +163,6 @@ export class PayStarDriver {
           error: null
         }
       } else {
-        // PayStar error response
         return {
           isError: true,
           data: null,
@@ -208,27 +198,19 @@ export class PayStarDriver {
    * @param {string} tracking_code - Tracking code from callback payload (optional).
    * @returns {Promise<TransactionVerifyResponsePayStar>} Response from the PayStar API for verifying a transaction.
    */
-  async verify(
-    data: TransactionVerifyInputPayStar,
-    card_number: string = '',
-    tracking_code: string = ''
-  ): Promise<TransactionVerifyResponsePayStar> {
+  async verify(data: TransactionVerifyInputPayStar): Promise<TransactionVerifyResponsePayStar> {
     try {
-      // Validate required fields
       if (!data.ref_num || !data.amount) {
         throw new Error('ref_num and amount are required parameters')
       }
 
-      // Use provided gateway_id or fallback to instance gateway_id
       const gateway_id = data.gateway_id || this.gateway_id
       if (!gateway_id) {
         throw new Error('gateway_id is required. Set it via setToken() or pass it in data.')
       }
 
-      // Generate signature if not provided (includes card_number and tracking_code)
-      const sign = data.sign || this.generateVerifySignature(data.ref_num, data.amount, card_number, tracking_code)
+      const sign = this.generateVerifySignature(data.ref_num, data.amount, data.card_number, data.tracking_code)
 
-      // Prepare request payload
       const payload = {
         ...data,
         gateway_id,
@@ -243,7 +225,6 @@ export class PayStarDriver {
         timeout: this.timeout
       })
 
-      // Check for success response
       if (responseData.status === 1 || responseData.status === 'ok') {
         return {
           isError: false,
@@ -252,16 +233,15 @@ export class PayStarDriver {
             order_id: responseData.data?.order_id || '',
             ref_num: responseData.data?.ref_num || data.ref_num,
             transaction_id: responseData.data?.transaction_id || '',
-            card_number: responseData.data?.card_number || card_number,
+            card_number: responseData.data?.card_number || data.card_number,
             hashed_card_number: responseData.data?.hashed_card_number || '',
-            tracking_code: responseData.data?.tracking_code || tracking_code,
+            tracking_code: responseData.data?.tracking_code || data.tracking_code,
             amount: responseData.data?.amount || data.amount,
             date: responseData.data?.date || new Date().toISOString()
           },
           error: null
         }
       } else {
-        // PayStar error response
         return {
           isError: true,
           data: null,
@@ -297,25 +277,18 @@ export class PayStarDriver {
    */
   async inquiry(data: TransactionInquiryInputPayStar): Promise<TransactionInquiryResponsePayStar> {
     try {
-      // Validate required fields
-      if (!data.ref_num || !data.amount) {
-        throw new Error('ref_num and amount are required parameters')
+      if (!data.ref_num) {
+        throw new Error('ref_num is a required parameter')
       }
 
-      // Use provided gateway_id or fallback to instance gateway_id
       const gateway_id = data.gateway_id || this.gateway_id
       if (!gateway_id) {
         throw new Error('gateway_id is required. Set it via setToken() or pass it in data.')
       }
 
-      // Generate signature if not provided
-      const sign = data.sign || this.generateVerifySignature(data.ref_num, data.amount)
-
-      // Prepare request payload
       const payload = {
         ...data,
-        gateway_id,
-        sign
+        gateway_id
       }
 
       const { data: responseData } = await axios.post(PayStarUrls.INQUIRY, payload, {
@@ -326,7 +299,6 @@ export class PayStarDriver {
         timeout: this.timeout
       })
 
-      // Check for success response
       if (responseData.status === 1 || responseData.status === 'ok') {
         return {
           isError: false,
@@ -338,13 +310,12 @@ export class PayStarDriver {
             card_number: responseData.data?.card_number || '',
             hashed_card_number: responseData.data?.hashed_card_number || '',
             tracking_code: responseData.data?.tracking_code || '',
-            amount: responseData.data?.amount || data.amount,
+            amount: responseData.data?.amount,
             date: responseData.data?.date || new Date().toISOString()
           },
           error: null
         }
       } else {
-        // PayStar error response
         return {
           isError: true,
           data: null,
