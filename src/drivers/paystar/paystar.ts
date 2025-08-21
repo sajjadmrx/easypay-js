@@ -31,7 +31,7 @@ export class PayStarDriver {
    * @param {string} gateway_id - The gateway ID to set.
    * @returns {this} Instance of PayStarDriver.
    */
-  setToken(gateway_id: string): this {
+  setGatewayId(gateway_id: string): this {
     if (!gateway_id) throw new Error('invalid parameters')
     this.gateway_id = gateway_id
     return this
@@ -108,7 +108,6 @@ export class PayStarDriver {
    */
   private generateVerifySignature(ref_num: string, amount: number, card_number: string, tracking_code: string): string {
     const message = `${amount}#${ref_num}#${card_number}#${tracking_code}`
-    console.log(message)
     return this.generateSignature(message)
   }
 
