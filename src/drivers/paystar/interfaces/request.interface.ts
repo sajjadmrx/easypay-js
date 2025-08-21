@@ -55,7 +55,6 @@ export interface TransactionVerifyInputPayStar {
  * @interface TransactionInquiryInputPayStar
  * @property {string} gateway_id Gateway ID for authentication (optional if set via setToken).
  * @property {string} ref_num Reference number from transaction creation.
- * @link https://docs.paystar.ir
  */
 export interface TransactionInquiryInputPayStar {
   gateway_id?: string

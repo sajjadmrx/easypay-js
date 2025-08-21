@@ -88,22 +88,24 @@ export interface TransactionVerifyResponsePayStar {
  */
 export interface TransactionInquiryResponsePayStar {
   isError: boolean
+  code: number | 'NETWORK_ERROR'
+  message: string
   data?: {
-    status: string | number
-    order_id: string
     ref_num: string
-    transaction_id: string
+    status: 'INIT' | 'SUCCEED' | 'FAILED' | 'CANCELLED' | 'REVERSED' | 'UNVERIFIED' | 'VERIFY_PENDING'
+    payment_date: string
+    payment_amount: number
+    order_id: string
+    ref_id: string
+    tracking_code: string
     card_number: string
     hashed_card_number: string
-    tracking_code: string
-    amount: number
-    date: string
-    message: string
-    code: number
   }
   error?: {
-    code: string | number
-    message: string
+    status: string
+    action: string
+    tag: string
+    api_version: string
     type: 'payment' | 'network' | 'api'
   }
 }

@@ -319,18 +319,17 @@ export class PayStarDriver {
         throw new Error('gateway_id is required. Set it via setToken() or pass it in data.')
       }
 
-      const payload = {
-        ...data,
-        gateway_id
-      }
-
-      const { data: responseData } = await axios.post(PayStarUrls.INQUIRY, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${gateway_id}`
-        },
-        timeout: this.timeout
-      })
+      const { data: responseData } = await axios.post(
+        PayStarUrls.INQUIRY,
+        { ...data, gateway_id },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${gateway_id}`
+          },
+          timeout: this.timeout
+        }
+      )
 
       if (responseData.status === 1 || responseData.status === 'ok') {
         return {
@@ -338,31 +337,58 @@ export class PayStarDriver {
           message: responseData.message,
           code: responseData.code,
           data: {
-            status: responseData.data?.status || responseData.status,
-            order_id: responseData.data?.order_id || '',
-            ref_num: responseData.data?.ref_num || data.ref_num,
-            transaction_id: responseData.data?.transaction_id || '',
-            card_number: responseData.data?.card_number || '',
-            hashed_card_number: responseData.data?.hashed_card_number || '',
-            tracking_code: responseData.data?.tracking_code || '',
-            amount: responseData.data?.amount,
-            date: responseData.data?.date || new Date().toISOString()
+            ref_num: responseData.data.ref_num,
+            status: responseData.data.status,
+            payment_date: responseData.data.payment_date,
+            payment_amount: responseData.data.payment_amount,
+            order_id: responseData.data.order_id,
+            ref_id: responseData.data.ref_id,
+            tracking_code: responseData.data.tracking_code,
+            card_number: responseData.data.card_number,
+            hashed_card_number: responseData.data.hashed_card_number
           }
         }
       } else {
         return {
           isError: true,
           message: responseData.message,
-          code: responseData.code
+          code: responseData.code,
+          error: {
+            status: responseData.status,
+            action: responseData.action,
+            tag: responseData.tag,
+            api_version: responseData.api_version,
+            type: 'payment'
+          }
         }
       }
     } catch (error: any) {
       if (error.isAxiosError) {
-        const errorData = error.response?.data
+        // Check if this is a network error (no response received)
+        if (!error.response) {
+          // Network timeout, connection refused, DNS issues, etc.
+          return {
+            isError: true,
+            code: 'NETWORK_ERROR',
+            message: `Network error: ${error.message}`,
+            error: {
+              type: 'network' // This is a network-related error
+            } as any
+          }
+        }
+
+        // This is an HTTP error (response received but with error status)
         return {
           isError: true,
-          message: errorData?.message || error.message || 'Network error occurred',
-          code: errorData?.status || error.response?.status || 'network_error'
+          code: error.response?.data.status,
+          message: error.response?.data?.message,
+          error: {
+            status: error.response?.data.status,
+            action: error.response?.data.action,
+            tag: error.response?.data.tag,
+            api_version: error.response?.data.api_version,
+            type: 'payment'
+          }
         }
       } else {
         throw error
