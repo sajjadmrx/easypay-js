@@ -10,12 +10,12 @@
  * @property {string} phone Mobile number of the payer (optional).
  * @property {string} mail Email address of the payer (optional).
  * @property {string} description Description for the transaction (optional).
- * @property {string} callback_method HTTP method for callback (GET/POST) (optional).
+ * @property {Array<{id: string, sheba_id: string, share: number} | {id: string, sheba_id: string, amount: number}>} allotment Split payment details (optional).
+ * @property {number} callback_method HTTP method for callback (1 for GET, 2 for POST) (optional).
  * @property {string} wallet_hashid Wallet hash ID for payout (optional).
  * @property {string} national_code National code of the payer (optional).
  * @property {string} card_number Card number for restricted payment (optional).
  * @property {string} referer_id Referer ID for tracking (optional).
- * @property {Array<{amount: number, description: string, iban: string}>} allotment Split payment details (optional).
  * @link https://docs.paystar.ir
  */
 export interface TransactionCreateInputPayStar {
@@ -27,16 +27,12 @@ export interface TransactionCreateInputPayStar {
   phone?: string
   mail?: string
   description?: string
-  callback_method?: 'GET' | 'POST'
+  allotment?: Array<{ id: string; sheba_id: string; share: number } | { id: string; sheba_id: string; amount: number }>
+  callback_method?: number
   wallet_hashid?: string
   national_code?: string
   card_number?: string
   referer_id?: string
-  allotment?: Array<{
-    amount: number
-    description: string
-    iban: string
-  }>
 }
 
 /**

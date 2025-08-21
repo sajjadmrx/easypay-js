@@ -16,12 +16,17 @@ export interface TransactionCreateResponsePayStar {
   data: {
     token: string
     ref_num: string
+    order_id: string
+    payment_amount: number
     url: string
-  } | null
-  error: {
-    code: string | number
-    message: string
-  } | null
+  }
+  error?: {
+    status: 'unauthenticated'
+    action: 'PardakhtCreate'
+    tag: 'unauthenticated'
+    api_version: string
+    type: 'payment' | 'network' | 'api'
+  }
 }
 
 /**

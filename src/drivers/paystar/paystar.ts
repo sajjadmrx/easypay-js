@@ -135,52 +135,80 @@ export class PayStarDriver {
 
       const sign = this.generateCreateSignature(data.amount, data.order_id, data.callback)
 
-      const payload = {
-        ...data,
-        gateway_id,
-        sign
-      }
-
-      const { data: responseData } = await axios.post(PayStarUrls.REQUEST, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${gateway_id}`
+      const { data: dataAxios } = await axios.post(
+        PayStarUrls.REQUEST,
+        {
+          ...data,
+          sign
         },
-        timeout: this.timeout
-      })
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${gateway_id}`
+          },
+          timeout: this.timeout
+        }
+      )
 
-      if (responseData.status === 1 || responseData.status === 'ok') {
-        const token = responseData.data?.token || responseData.token
-        const ref_num = responseData.data?.ref_num || responseData.ref_num
+      dataAxios.isError = dataAxios.status < 1
+      if (!dataAxios.isError) {
+        const token = dataAxios.data.token
+        const ref_num = dataAxios.data.ref_num
+        const order_id = dataAxios.data.order_id
+        const payment_amount = dataAxios.data.payment_amount
 
         return {
           isError: false,
+          code: dataAxios.status,
+          message: dataAxios.message,
           data: {
             token,
             ref_num,
+            payment_amount,
+            order_id,
             url: `${PayStarUrls.PAYMENT_PAGE}?token=${token}`
-          },
-          error: null
+          }
         }
       } else {
         return {
           isError: true,
-          data: null,
+          code: dataAxios.status,
+          message: dataAxios.message,
           error: {
-            code: responseData.status || 'unknown',
-            message: responseData.message || 'Unknown PayStar error'
+            status: dataAxios.status,
+            action: dataAxios.action,
+            tag: dataAxios.tag,
+            api_version: dataAxios.api_version,
+            type: 'payment'
           }
         }
       }
     } catch (error: any) {
       if (error.isAxiosError) {
-        const errorData = error.response?.data
+        // Check if this is a network error (no response received)
+        if (!error.response) {
+          // Network timeout, connection refused, DNS issues, etc.
+          return {
+            isError: true,
+            code: 'NETWORK_ERROR',
+            message: `Network error: ${error.message}`,
+            error: {
+              type: 'network' // This is a network-related error
+            } as any
+          }
+        }
+
+        // This is an HTTP error (response received but with error status)
         return {
           isError: true,
-          data: null,
+          code: error.response?.data.status,
+          message: error.response?.data?.message,
           error: {
-            code: errorData?.status || error.response?.status || 'network_error',
-            message: errorData?.message || error.message || 'Network error occurred'
+            status: error.response?.data.status,
+            action: error.response?.data.action,
+            tag: error.response?.data.tag,
+            api_version: error.response?.data.api_version,
+            type: 'payment'
           }
         }
       } else {
