@@ -3,25 +3,32 @@
  *
  * @interface TransactionCreateResponsePayStar
  * @property {boolean} isError Indicates if there's an error in the response.
- * @property {object} data Data related to the transaction if successful.
- * @property {string} data.token Token for redirecting user to payment page.
- * @property {string} data.ref_num Reference number for transaction tracking.
- * @property {string} data.url Full URL to redirect user to payment page.
+ * @property {object} data Data related to the created transaction if successful.
+ * @property {string} data.token Token for the transaction.
+ * @property {string} data.ref_num Reference number of the transaction.
+ * @property {string} data.url URL for the transaction.
  * @property {object} error Error details if an error occurred.
  * @property {string | number} error.code Error code.
  * @property {string} error.message Error message.
  */
 export interface TransactionCreateResponsePayStar {
   isError: boolean
-  data: {
+  code: number | 'NETWORK_ERROR'
+  message: string
+  data?: {
     token: string
     ref_num: string
+    order_id: string
+    payment_amount: number
     url: string
-  } | null
-  error: {
-    code: string | number
-    message: string
-  } | null
+  }
+  error?: {
+    status: string
+    action: string
+    tag: string
+    api_version: string
+    type: 'payment' | 'network' | 'api'
+  }
 }
 
 /**
@@ -29,37 +36,35 @@ export interface TransactionCreateResponsePayStar {
  *
  * @interface TransactionVerifyResponsePayStar
  * @property {boolean} isError Indicates if there's an error in the response.
+ * @property {number | 'NETWORK_ERROR'} code Error code.
+ * @property {string} message Error message.
  * @property {object} data Data related to the verified transaction if successful.
- * @property {string | number} data.status Transaction status.
- * @property {string} data.order_id Order ID of the transaction.
+ * @property {number} data.price Price of the transaction.
  * @property {string} data.ref_num Reference number of the transaction.
- * @property {string} data.transaction_id PayStar transaction ID.
  * @property {string} data.card_number Card number used for payment.
- * @property {string} data.hashed_card_number Hashed card number for security.
- * @property {string} data.tracking_code Bank tracking code.
- * @property {number} data.amount Transaction amount.
- * @property {string} data.date Transaction date.
  * @property {object} error Error details if an error occurred.
- * @property {string | number} error.code Error code.
- * @property {string} error.message Error message.
+ * @property {string} error.status Status of the transaction.
+ * @property {string} error.action Action of the transaction.
+ * @property {string} error.tag Tag of the transaction.
+ * @property {string} error.api_version API version of the transaction.
+ * @property {string} error.type Type of the error.
  */
 export interface TransactionVerifyResponsePayStar {
   isError: boolean
-  data: {
-    status: string | number
-    order_id: string
+  code: number | 'NETWORK_ERROR'
+  message: string
+  data?: {
+    price: number
     ref_num: string
-    transaction_id: string
     card_number: string
-    hashed_card_number: string
-    tracking_code: string
-    amount: number
-    date: string
-  } | null
-  error: {
-    code: string | number
-    message: string
-  } | null
+  }
+  error?: {
+    status: string
+    action: string
+    tag: string
+    api_version: string
+    type: 'payment' | 'network' | 'api'
+  }
 }
 
 /**
@@ -83,21 +88,26 @@ export interface TransactionVerifyResponsePayStar {
  */
 export interface TransactionInquiryResponsePayStar {
   isError: boolean
-  data: {
-    status: string | number
-    order_id: string
+  code: number | 'NETWORK_ERROR'
+  message: string
+  data?: {
     ref_num: string
-    transaction_id: string
+    status: 'INIT' | 'SUCCEED' | 'FAILED' | 'CANCELLED' | 'REVERSED' | 'UNVERIFIED' | 'VERIFY_PENDING'
+    payment_date: string
+    payment_amount: number
+    order_id: string
+    ref_id: string
+    tracking_code: string
     card_number: string
     hashed_card_number: string
-    tracking_code: string
-    amount: number
-    date: string
-  } | null
-  error: {
-    code: string | number
-    message: string
-  } | null
+  }
+  error?: {
+    status: string
+    action: string
+    tag: string
+    api_version: string
+    type: 'payment' | 'network' | 'api'
+  }
 }
 
 /**

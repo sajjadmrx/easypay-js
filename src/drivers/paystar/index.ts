@@ -17,3 +17,4 @@ export type {
 
 // PayStar enums exports
 export { PayStarUrls } from './enums/urls.enum'
+export { payStarPalErrors } from './enums/errors.enum'
