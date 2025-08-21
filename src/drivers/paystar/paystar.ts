@@ -96,18 +96,15 @@ export class PayStarDriver {
 
   /**
    * Generate signature for transaction verification.
-   * Signature format: ref_num#amount#card_number#tracking_code
-   * Note: card_number and tracking_code come from callback payload
+   * Signature format: ref_num#amount
    *
    * @private
    * @param {string} ref_num - Reference number.
    * @param {number} amount - Transaction amount.
-   * @param {string} card_number - Card number from callback (optional).
-   * @param {string} tracking_code - Tracking code from callback (optional).
    * @returns {string} Generated signature.
    */
-  private generateVerifySignature(ref_num: string, amount: number, card_number: string, tracking_code: string): string {
-    const message = `${amount}#${ref_num}#${card_number}#${tracking_code}`
+  private generateVerifySignature(ref_num: string, amount: number): string {
+    const message = `${amount}#${ref_num}`
     return this.generateSignature(message)
   }
 
@@ -136,10 +133,7 @@ export class PayStarDriver {
 
       const { data: dataAxios } = await axios.post(
         PayStarUrls.REQUEST,
-        {
-          ...data,
-          sign
-        },
+        { ...data, sign },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -221,8 +215,6 @@ export class PayStarDriver {
    * Must be called within 10 minutes of payment completion.
    *
    * @param {TransactionVerifyInputPayStar} data - Input data for verifying the transaction.
-   * @param {string} card_number - Card number from callback payload (optional).
-   * @param {string} tracking_code - Tracking code from callback payload (optional).
    * @returns {Promise<TransactionVerifyResponsePayStar>} Response from the PayStar API for verifying a transaction.
    */
   async verify(data: TransactionVerifyInputPayStar): Promise<TransactionVerifyResponsePayStar> {
@@ -236,57 +228,71 @@ export class PayStarDriver {
         throw new Error('gateway_id is required. Set it via setToken() or pass it in data.')
       }
 
-      const sign = this.generateVerifySignature(data.ref_num, data.amount, data.card_number, data.tracking_code)
+      const sign = this.generateVerifySignature(data.ref_num, data.amount)
 
-      const payload = {
-        ...data,
-        gateway_id,
-        sign
-      }
-
-      const { data: responseData } = await axios.post(PayStarUrls.VERIFY, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${gateway_id}`
-        },
-        timeout: this.timeout
-      })
+      const { data: responseData } = await axios.post(
+        PayStarUrls.VERIFY,
+        { ...data, sign },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${gateway_id}`
+          },
+          timeout: this.timeout
+        }
+      )
 
       if (responseData.status === 1 || responseData.status === 'ok') {
         return {
           isError: false,
+          code: responseData.status,
+          message: responseData.message,
           data: {
-            status: responseData.data?.status || responseData.status,
-            order_id: responseData.data?.order_id || '',
-            ref_num: responseData.data?.ref_num || data.ref_num,
-            transaction_id: responseData.data?.transaction_id || '',
-            card_number: responseData.data?.card_number || data.card_number,
-            hashed_card_number: responseData.data?.hashed_card_number || '',
-            tracking_code: responseData.data?.tracking_code || data.tracking_code,
-            amount: responseData.data?.amount || data.amount,
-            date: responseData.data?.date || new Date().toISOString()
-          },
-          error: null
+            price: responseData.data.price,
+            ref_num: responseData.data.ref_num,
+            card_number: responseData.data.card_number
+          }
         }
       } else {
         return {
           isError: true,
-          data: null,
+          code: responseData.status,
+          message: responseData.message,
           error: {
-            code: responseData.status || 'unknown',
-            message: responseData.message || 'Unknown PayStar error'
+            status: responseData.status,
+            action: responseData.action,
+            tag: responseData.tag,
+            api_version: responseData.api_version,
+            type: 'payment'
           }
         }
       }
     } catch (error: any) {
       if (error.isAxiosError) {
-        const errorData = error.response?.data
+        // Check if this is a network error (no response received)
+        if (!error.response) {
+          // Network timeout, connection refused, DNS issues, etc.
+          return {
+            isError: true,
+            code: 'NETWORK_ERROR',
+            message: `Network error: ${error.message}`,
+            error: {
+              type: 'network' // This is a network-related error
+            } as any
+          }
+        }
+
+        // This is an HTTP error (response received but with error status)
         return {
           isError: true,
-          data: null,
+          code: error.response?.data.status,
+          message: error.response?.data?.message,
           error: {
-            code: errorData?.status || error.response?.status || 'network_error',
-            message: errorData?.message || error.message || 'Network error occurred'
+            status: error.response?.data.status,
+            action: error.response?.data.action,
+            tag: error.response?.data.tag,
+            api_version: error.response?.data.api_version,
+            type: 'payment'
           }
         }
       } else {
@@ -329,6 +335,8 @@ export class PayStarDriver {
       if (responseData.status === 1 || responseData.status === 'ok') {
         return {
           isError: false,
+          message: responseData.message,
+          code: responseData.code,
           data: {
             status: responseData.data?.status || responseData.status,
             order_id: responseData.data?.order_id || '',
@@ -339,17 +347,13 @@ export class PayStarDriver {
             tracking_code: responseData.data?.tracking_code || '',
             amount: responseData.data?.amount,
             date: responseData.data?.date || new Date().toISOString()
-          },
-          error: null
+          }
         }
       } else {
         return {
           isError: true,
-          data: null,
-          error: {
-            code: responseData.status || 'unknown',
-            message: responseData.message || 'Unknown PayStar error'
-          }
+          message: responseData.message,
+          code: responseData.code
         }
       }
     } catch (error: any) {
@@ -357,11 +361,8 @@ export class PayStarDriver {
         const errorData = error.response?.data
         return {
           isError: true,
-          data: null,
-          error: {
-            code: errorData?.status || error.response?.status || 'network_error',
-            message: errorData?.message || error.message || 'Network error occurred'
-          }
+          message: errorData?.message || error.message || 'Network error occurred',
+          code: errorData?.status || error.response?.status || 'network_error'
         }
       } else {
         throw error
