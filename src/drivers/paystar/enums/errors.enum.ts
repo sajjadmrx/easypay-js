@@ -6,7 +6,7 @@
  * @constant
  * @link https://docs.paystar.ir/docs/tutorial-basics/IPG-payment-helper/#جدول-کد-های-وضعیت
  */
-export const zarinPalErrors: Record<string, string> = {
+export const payStarPalErrors: Record<string, string> = {
   '1': 'موفق',
   '1-': 'درخواست نامعتبر (خطا در پارامترهای ورودی)',
   '2-': 'درگاه فعال نیست',
